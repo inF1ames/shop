@@ -1,12 +1,16 @@
 package com.company.shop.controller;
 
+import com.company.shop.converters.EntityDtoConverter;
 import com.company.shop.dao.UserDao;
+import com.company.shop.dao.entity.User;
 import com.company.shop.model.ResponseMessage;
 import com.company.shop.model.dto.UserDto;
+import com.company.shop.service.SecurityService;
 import com.company.shop.validation.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -14,8 +18,12 @@ public class UserController {
 
     @Autowired
     private UserDao userDao;
+
     @Autowired
     private UserValidator userValidator;
+
+    @Autowired
+    private SecurityService securityService;
 
     @RequestMapping(value = "/login")
     public String getLogin(@RequestParam(value = "error", required = false) String error,
@@ -27,19 +35,26 @@ public class UserController {
     }
 
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
-    public String getRegistration() {
+    public String getRegistration(Model model) {
+        model.addAttribute("userForm", new User());
         return "registration";
     }
 
-    @ResponseBody
+
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public ResponseMessage addUser(@RequestBody UserDto userDto) {
-        String validateResult = userValidator.validate(userDto);
-        if (validateResult != null) {
-            return ResponseMessage.errorMessage(validateResult);
-        } else
-            userDao.create(userDto);
-        return ResponseMessage.okMessage();
+    public String registration(@ModelAttribute("userForm") User user, BindingResult bindingResult) {
+        System.out.println(user);
+
+        userValidator.validate(user, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            return "registration";
+        }
+
+        userDao.create(EntityDtoConverter.convert(user));
+        securityService.autoLogin(user.getUsername(), user.getPassword());
+
+        return "redirect:/main";
     }
 
 }
