@@ -3,8 +3,6 @@ package com.company.shop.controller;
 import com.company.shop.converters.EntityDtoConverter;
 import com.company.shop.dao.UserDao;
 import com.company.shop.dao.entity.User;
-import com.company.shop.model.ResponseMessage;
-import com.company.shop.model.dto.UserDto;
 import com.company.shop.service.SecurityService;
 import com.company.shop.validation.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +41,6 @@ public class UserController {
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
     public String registration(@ModelAttribute("userForm") User user, BindingResult bindingResult) {
-        System.out.println(user);
 
         userValidator.validate(user, bindingResult);
 
